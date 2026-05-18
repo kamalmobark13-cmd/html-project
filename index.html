@@ -1,0 +1,2160 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>سلسلة التميز - الصف السادس</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }/* تصغير طول المربعات الصفر */
+.draggable {
+    height: 15px !important;
+    min-height: 15px !important;
+    line-height: 8px !important;
+    padding: 0px 0px !important;
+    font-size: 10px !important;
+    margin: 3px !important;
+}.note-alert {
+    background: #fffde7;
+    color: #6d4c41;
+    border: 1px solid #ffcc80;
+    border-radius: 8px;
+    padding: 8px 12px;
+    margin: 10px;
+    text-align: center;
+    font-size: 13px;
+}
+.note-alert b { color: #bf360c; }
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #000428;
+            background: linear-gradient(to bottom, #000428, #004e92);
+            min-height: 100vh;
+            padding: 0;
+            position: relative;
+            overflow-x: hidden;
+            transition: 0.3s;
+        }
+        .app-container {
+            width: 100%;
+            max-width: 500px;
+            min-height: 100vh;
+            margin: 0 auto;
+            position: relative;
+        }
+        #mode-screen, #units-screen, #activation-screen, #name-screen, #unit-name-screen, #worksheets-screen, #summaries-screen, #drop-game-screen {
+            width: 100%;
+            max-width: 500px;
+            min-height: 100vh;
+            margin: 0 auto;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            text-align: center;
+        }
+        #activation-screen, #name-screen, #unit-name-screen, #units-screen, #game-screen, #complete-screen, #worksheets-screen, #summaries-screen, #drop-game-screen { display: none; }
+        #mode-screen { display: flex; padding-top: 8px; }
+
+        /* ===== شاشة الوحدات الفرعية ===== */
+        #sub-units-screen {
+            display: none;
+            width: 100%;
+            max-width: 500px;
+            min-height: 100vh;
+            margin: 0 auto;
+            padding: 10px;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            text-align: center;
+        }
+
+        /* ===== شاشة قائمة الامتحانات الشاملة (جديدة) ===== */
+        #exam-list-screen {
+            display: none;
+            width: 100%;
+            max-width: 500px;
+            min-height: 100vh;
+            margin: 0 auto;
+            padding: 10px;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            text-align: center;
+        }
+
+        .exam-list-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            width: 100%;
+            max-width: 420px;
+            padding: 15px;
+            margin-top: 10px;
+        }
+
+        .exam-list-card {
+            background: linear-gradient(to bottom, #1a0a00, #3d1a00);
+            border: 3px solid #f77f00;
+            border-radius: 15px;
+            padding: 18px 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 0 15px rgba(247,127,0,0.3);
+            position: relative;
+        }
+        .exam-list-card:hover { transform: translateY(-4px); box-shadow: 0 8px 25px rgba(247,127,0,0.5); }
+        .exam-list-card.done {
+            border-color: #00cc44;
+            background: linear-gradient(to bottom, #001a0a, #003315);
+            box-shadow: 0 0 15px rgba(0,204,68,0.3);
+        }
+        .exam-list-card.locked-exam {
+            border-color: #555;
+            background: linear-gradient(to bottom, #111, #222);
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .exam-card-icon { font-size: 28px; margin-bottom: 6px; }
+        .exam-card-title { font-size: 15px; color: #FFD700; font-weight: 900; margin: 4px 0; }
+        .exam-card-desc { font-size: 12px; color: #fff; opacity: 0.9; margin: 3px 0; }
+        .exam-card-status {
+            font-size: 11px;
+            margin-top: 6px;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+        .exam-card-status.available { background: #f77f00; color: #fff; }
+        .exam-card-status.done-status { background: #00cc44; color: #fff; }
+        .exam-card-status.locked-status { background: #555; color: #ccc; }
+
+        .exam-list-info {
+            background: rgba(247,127,0,0.15);
+            border: 2px solid #f77f00;
+            border-radius: 12px;
+            padding: 12px 15px;
+            margin: 10px 15px;
+            color: #FFD700;
+            font-size: 14px;
+            line-height: 1.8;
+            text-align: center;
+        }
+
+        .activation-box {
+            background: rgba(0,0,0,0.8);
+            border: 3px solid #FF0000;
+            border-radius: 15px;
+            padding: 25px 20px;
+            box-shadow: 0 0 25px rgba(255,0,0,0.5);
+            width: 100%;
+        }
+        .activation-box h2 { font-size: 22px; color: #FFD700; margin-bottom: 15px; }
+        .activation-box p { font-size: 16px; color: #fff; line-height: 1.8; margin-bottom: 15px; }
+        .activation-box input {
+            width: 100%; padding: 12px; font-size: 18px; border: 2px solid #FFD700;
+            border-radius: 10px; text-align: center; margin-bottom: 15px; background: #fff;
+            color: #000; font-weight: bold;
+        }
+        #activation-error, #name-error, #unit-name-error { color: #ff4444; font-size: 16px; font-weight: bold; margin-bottom: 15px; display: none; }
+
+        .header-small {
+            background: linear-gradient(to bottom, #001a33, #003366);
+            padding: 6px 12px;
+            text-align: center;
+            border-bottom: 2px solid #FFD700;
+            margin: 0 15px 6px 15px;
+            border-radius: 6px;
+        }
+        .header-small h1 {
+            font-size: 18px;
+            color: #FFD700;
+            text-shadow: 0 0 10px rgba(255,215,0,0.5);
+            margin-bottom: 2px;
+            font-weight: 900;
+        }
+        .header-small p {
+            font-size: 13px;
+            color: #fff;
+            margin: 1px 0;
+            font-weight: 900;
+        }
+
+        .mode-selection {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            width: 100%;
+            padding: 0 15px;
+            margin-top: 0px;
+        }
+        .mode-btn {
+            background: #0f1e35;
+            border: 2px solid #FFD700;
+            border-radius: 12px;
+            padding: 12px 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            min-height: 105px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .mode-btn:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.4); }
+        .mode-btn.units { border-color: #4cc9f0; }
+        .mode-btn.exam { border-color: #f77f00; }
+        .mode-btn.work { border-color: #06d6a0; }
+        .mode-btn.summary { border-color: #00b4d8; }
+        .mode-btn.friend { border-color: #9d4edd; }
+        .mode-btn.draw { border-color: #06d6a0; }
+        .mode-icon { font-size: 30px; margin-bottom: 6px; }
+        .mode-title { font-size: 13px; color: #FFD700; font-weight: 900; margin: 3px 0; }
+        .mode-desc {
+            font-size: 14px;
+            color: #FFFFFF;
+            font-weight: 600;
+            opacity: 0.95;
+        }
+
+        .sound-toggle {
+            position: absolute;
+            top: 55px;
+            left: 15px;
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            border: 2px solid #000;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 100;
+            box-shadow: 0 4px 15px rgba(255,215,0,0.4);
+        }
+
+        #game-screen {
+            background: linear-gradient(to bottom, #000428, #004e92);
+            min-height: 100vh;
+            padding: 0;
+            position: relative;
+        }
+
+        .game-top-bar {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 15px;
+            background: rgba(0,0,0,0.5);
+        }
+
+        .back-units-btn {
+            background: #ff0000;
+            border: 2px solid #fff;
+            border-radius: 8px;
+            padding: 8px 15px;
+            color: #fff;
+            font-size: 16px;
+            font-weight: 900;
+            cursor: pointer;
+        }
+
+        .lifelines-top {
+            display: flex;
+            gap: 8px;
+        }
+.lifeline {
+    width: 60px; 
+    height: 60px;
+    background: #000;
+    border: 3px solid #fff;
+    border-radius: 50%;
+    display: flex; 
+    align-items: center;     
+    justify-content: center; 
+    text-align: center;      
+    font-size: 11px;         
+    line-height: 1.1;        
+    font-weight: 900;
+    color: #fff;
+    padding: 3px;
+}
+        .lifeline.used { background: #444; cursor: not-allowed; opacity: 0.5; }
+
+        .grades-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            color: #fff;
+            font-size: 16px;
+            font-weight: bold;
+            position: relative;
+        }
+
+        .timer-circle {
+            width: 50px;
+            height: 50px;
+            border: 3px solid #FFD700;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            font-weight: 900;
+            color: #FFD700;
+            background: rgba(0,0,0,0.5);
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        .timer-circle.low { border-color: #ff0000; color: #ff0000; animation: pulse 0.5s infinite; }
+        @keyframes pulse { 0%, 100% { transform: translateX(-50%) scale(1); } 50% { transform: translateX(-50%) scale(1.1); } }
+
+        .grade-badge-old {
+            background: #ff6600;
+            border: 2px solid #fff;
+            border-radius: 8px;
+            padding: 5px 12px;
+            font-size: 14px;
+            font-weight: 900;
+            color: #fff;
+            display: none;
+            margin: 8px auto;
+            text-align: center;
+            width: fit-content;
+        }
+        .grade-badge-old.show { display: block; }
+
+        .question-box-old {
+            background: #000;
+            border: 3px solid #fff;
+            border-radius: 10px;
+            padding: 15px 12px;
+            margin: 10px 15px;
+            box-shadow: 0 0 20px rgba(255,255,0.3);
+        }
+        .question-text { font-size: 17px; color: #FFD700; line-height: 1.6; text-align: center; font-weight: bold; }
+        .question-image { width: 100%; max-width: 280px; margin: 10px auto; display: block; border-radius: 10px; border: 2px solid #FFD700; cursor: pointer; }
+
+        .options-container-old {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 0 15px 15px;
+        }
+        .option-old {
+            background: #001a33;
+            border: 3px solid #fff;
+            border-radius: 10px;
+            padding: 12px 15px;
+            font-size: 15px;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: right;
+            font-weight: bold;
+        }
+        .option-old:hover { background: #003366; }
+        .option-old.correct { background: #00aa00; animation: correctPulse 0.6s; }
+        .option-old.wrong { background: #cc0000; animation: shake 0.5s; }
+        .option-old.disabled { pointer-events: none; opacity: 0.6; }
+        @keyframes correctPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
+
+        .units-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; width: 100%; max-width: 400px; padding: 20px; }
+        .unit-card {
+            background: linear-gradient(to bottom, #001a33, #003366);
+            border: 3px solid #FFD700;
+            border-radius: 15px; padding: 20px 15px; text-align: center; cursor: pointer;
+            transition: all 0.3s; box-shadow: 0 0 20px rgba(255,215,0,0.3); position: relative;
+        }
+        .unit-card.locked { opacity: 0.4; cursor: not-allowed; border-color: #666; }
+        .unit-card.locked::after { content: '🔒'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 40px; }
+        .unit-card.completed { border-color: #00ff00; }
+        .unit-card:hover:not(.locked) { transform: translateY(-5px); }
+        .unit-num { font-size: 24px; color: #FFD700; font-weight: 900; margin-bottom: 8px; }
+        .unit-name { font-size: 14px; color: #fff; margin-bottom: 5px; }
+        .unit-questions { font-size: 12px; color: #FFD700; opacity: 0.8; }
+
+        /* ===== بطاقة الوحدة الثانية الخاصة (تمتد على عرض كامل) ===== */
+        .unit-card-full {
+            grid-column: 1 / -1;
+            background: linear-gradient(to bottom, #001a33, #003366);
+            border: 3px solid #FFD700;
+            border-radius: 15px;
+            padding: 14px 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 0 20px rgba(255,215,0,0.3);
+            position: relative;
+        }
+        .unit-card-full:hover { transform: translateY(-3px); }
+        .unit-card-full.completed { border-color: #00ff00; }
+
+        /* ===== بطاقات الوحدات الفرعية ===== */
+        .sub-unit-card {
+            background: linear-gradient(to bottom, #001a33, #1a0050);
+            border: 3px solid #9d4edd;
+            border-radius: 15px;
+            padding: 18px 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 0 15px rgba(157,78,221,0.3);
+            position: relative;
+        }
+        .sub-unit-card:hover:not(.locked) { transform: translateY(-5px); box-shadow: 0 8px 25px rgba(157,78,221,0.5); }
+        .sub-unit-card.completed { border-color: #00ff00; }
+        .sub-unit-card .unit-num { color: #c77dff; }
+
+        .complete-box {
+            background: linear-gradient(to bottom, #001a33, #003366);
+            border: 4px solid #FFD700;
+            border-radius: 20px; padding: 40px 30px; box-shadow: 0 0 40px rgba(255,215,0,0.5);
+            animation: celebrateIn 0.8s ease-out;
+        }
+        @keyframes celebrateIn { 0% { transform: scale(0); } 100% { transform: scale(1); } }
+        .complete-box h2 { font-size: 32px; color: #FFD700; margin-bottom: 20px; animation: glow 2s infinite; }
+        @keyframes glow { 0%, 100% { text-shadow: 0 0 20px rgba(255,215,0,0.8); } 50% { text-shadow: 0 0 30px rgba(255,215,0,1); } }
+        .next-btn { background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%); border: 3px solid #000; border-radius: 15px; padding: 15px 40px; font-size: 18px; font-weight: 900; color: #000; cursor: pointer; }
+
+        .image-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 9999; justify-content: center; align-items: center; }
+        .image-modal img { max-width: 90%; max-height: 90%; border: 4px solid #FFD700; border-radius: 15px; }
+        .image-modal .close { position: absolute; top: 20px; right: 30px; font-size: 50px; color: #FFD700; cursor: pointer; }
+        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9998; justify-content: center; align-items: center; }
+        .result-box { background: #2a2a2a; border: 3px solid #FFD700; border-radius: 15px; padding: 30px; text-align: center; max-width: 90%; }
+        #resultContent { color: #fff; }
+
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); z-index: 999; backdrop-filter: blur(5px);
+        }
+        .modal-content {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+            background: #0f1e35; padding: 25px; border-radius: 15px; width: 85%;
+            max-width: 350px; border: 2px solid #ffd60a;
+        }
+        .modal h3 { color: #ffd60a; text-align: center; margin-bottom: 15px; font-size: 20px; }
+        .modal p { color: #e0e0e0; font-size: 13px; text-align: center; margin-bottom: 15px; line-height: 1.6; }
+        .modal input {
+            width: 100%; padding: 12px; font-size: 18px; text-align: center;
+            border-radius: 8px; border: 2px solid #415a77; margin-bottom: 15px;
+            background: #0a1628; color: #fff;
+        }
+        .modal button {
+            width: 100%; padding: 12px; border: none; border-radius: 8px;
+            font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.2s;
+        }
+        .btn-start { background: #06d6a0; color: #000; }
+        .btn-start:hover { background: #05c091; }
+        .btn-cancel { background: #415a77; color: #fff; margin-top: 8px; padding: 10px; }
+        .btn-cancel:hover { background: #364b63; }
+
+        #drop-game-screen { background: #e3f2fd; padding: 10px; }
+        
+        .drawing-controls-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin: 6px 0 4px 0;
+            gap: 8px;
+        }
+
+        .btn-column {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .drop-back-btn {
+            background: #ff0000;
+            border: 2px solid #fff;
+            border-radius: 6px;
+            padding: 5px 10px;
+            color: #fff;
+            font-size: 12px;
+            font-weight: 900;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .drop-reset {
+            background: #1976d2;
+            color: #fff;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .drop-timer-center {
+            display: flex;
+            align-items: center;
+        }
+
+        .drop-timer-center .timer {
+            background: #d32f2f;
+            color: #fff;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 900;
+        }
+
+        .drop-score {
+            font-size: 14px;
+            color: #d32f2f;
+            font-weight: bold;
+            white-space: nowrap;
+            padding-top: 5px;
+        }
+        
+        #game-wrapper {
+            max-width: 380px;
+            margin: 0 auto;
+        }
+
+        #rasm-game-area {
+            margin-top: 5px !important;
+        }
+
+        #flower-box {
+            margin: 0 auto 2px auto !important;
+            border: 2px solid #4caf50 !important;
+            border-radius: 6px !important;
+            overflow: hidden !important;
+            background: white !important;
+            width: 100% !important;
+            max-height: 400px !important;
+            padding: 4px !important;
+        }
+
+        #flower-box p {
+            font-size: 11px !important;
+            margin: 1px 0 !important;
+            padding: 0 !important;
+            text-align: center !important;
+            line-height: 1 !important;
+            font-weight: 900 !important;
+        }
+
+        #flower-img {
+            width: 100% !important;
+            display: block !important;
+            max-height: 280px !important;
+            object-fit: contain !important;
+            margin: 0 auto !important;
+        }
+
+        #game-area {
+            display: flex !important;
+            background: white !important;
+            border: 2px solid #4caf50 !important;
+            border-radius: 6px !important;
+            padding: 3px !important;
+            min-height: 120px !important;
+            max-height: 160px !important;
+            gap: 3px !important;
+            margin-top: 2px !important;
+        }
+
+        #labels {
+            flex: 1;
+            display: flex;
+            flex-wrap: wrap;
+            align-content: flex-start;
+            gap: 3px;
+            overflow-y: auto;
+        }
+        
+        .draggable {
+            padding: 3px 6px;
+            background: #ffeb3b;
+            border: 2px solid #fbc02d;
+            border-radius: 4px;
+            cursor: grab;
+            font-weight: bold;
+            font-size: 11px;
+            user-select: none;
+            height: fit-content;
+            min-width: 65px;
+            max-width: 90px;
+            text-align: center;
+            flex: 0 0 auto;
+            white-space: nowrap;
+        }
+        
+        #drop-zones {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2px 5px;
+            align-content: start;
+        }
+
+        .drop-zone {
+            width: 24px !important;
+            height: 24px !important;
+            background: #fff !important;
+            border: 2px dashed #f44336 !important;
+            border-radius: 50% !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            font-weight: 900 !important;
+            font-size: 10px !important;
+            transition: all 0.3s ease !important;
+        }
+
+        .drop-zone.correct {
+            background: #4caf50 !important;
+            border: 2px solid #2e7d32 !important;
+            color: white !important;
+            font-size: 16px !important;
+        }
+
+        .drop-zone.wrong {
+            background: #f44336 !important;
+            border: 2px solid #c62828 !important;
+            color: white !important;
+            font-size: 16px !important;
+            animation: shakeZone 0.5s !important;
+        }
+
+        @keyframes shakeZone { 
+            0%, 100% { transform: translateX(0); } 
+            25% { transform: translateX(-5px); } 
+            75% { transform: translateX(5px); } 
+        }
+
+        .draggable.dragging { opacity: 0.4; }
+        .draggable.used {
+            background: #c8e6c9;
+            border-color: #4caf50;
+            color: #2e7d32;
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .drawing-timer {
+            background: #ff0000;
+            color: #fff;
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-size: 20px;
+            font-weight: 900;
+            text-align: center;
+            margin: 4px auto;
+            width: fit-content;
+            border: 2px solid #fff;
+            box-shadow: 0 0 15px rgba(255,0,0,0.6);
+        }
+        .drawing-timer.low { animation: pulseTimer 0.5s infinite; }
+        @keyframes pulseTimer { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }.drop-zone {
+    width: 25px !important;
+    height: 30px !important;
+    min-width: 35px !important;
+    min-height: 15px !important;
+    font-size: 15px !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border: 2px dashed #f44336 !important;
+}
+.drop-zone.correct {
+    background: #4CAF50 !important;
+    border-color: #4CAF50 !important;
+    color: #fff !important;
+    font-size: 26px !important;
+}
+ .drop-zone {
+    display: inline-block !important;
+    float: none !important;
+}
+div:has(> .drop-zone) {
+    display: grid !important;
+    grid-template-columns: repeat(3, auto) !important;
+    gap: 6px !important;
+    justify-content: center !important;
+}
+
+/* ===== زر رجوع الملخص ===== */
+.summary-back-btn {
+    display: inline-block;
+    background: #cc0000;
+    color: #fff;
+    border: 2px solid #000;
+    border-radius: 8px;
+    padding: 7px 16px;
+    font-size: 14px;
+    font-weight: 900;
+    cursor: pointer;
+    margin-bottom: 12px;
+    float: left;
+    direction: ltr;
+}
+.summary-back-btn:hover { background: #990000; }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div id="mode-screen">
+            <div class="header-small">
+                <h1>🏆 سلسلة التميز 🏆</h1>
+                <p>الصف السادس - العلوم</p>
+                <p>تصميم الأستاذ مبارك عبدالله أرباب</p>
+            </div>
+
+            <div class="mode-selection">
+                <div class="mode-btn units" onclick="selectMode('units')">
+                    <div class="mode-icon">📚</div>
+                    <div class="mode-title">الوحدات الدراسية</div>
+                    <div class="mode-desc">(٨ وحدات)</div>
+                </div>
+
+                <div class="mode-btn exam" onclick="selectMode('exam')">
+                    <div class="mode-icon">📄</div>
+                    <div class="mode-title">امتحانات شاملة</div>
+                    <div class="mode-desc">الدرجة الكاملة 30</div>
+                </div>
+
+                <div class="mode-btn work" onclick="openWorksheetsScreen()">
+                    <div class="mode-icon">📝</div>
+                    <div class="mode-title">ورق عمل + امتحانات</div>
+                    <div class="mode-desc">تدريبات وامتحانات</div>
+                </div>
+
+                <div class="mode-btn summary" onclick="openSummariesScreen()">
+                    <div class="mode-icon">📋</div>
+                    <div class="mode-title">ملخص الوحدات</div>
+                    <div class="mode-desc">أهم النقاط لكل وحدة</div>
+                </div>
+
+                <div class="mode-btn friend" onclick="showPlayWithFriend()">
+                    <div class="mode-icon">👥</div>
+                    <div class="mode-title">العب مع زميلك</div>
+                    <div class="mode-desc">10 أسئلة بنفس الكود</div>
+                </div>
+
+                <div class="mode-btn draw" onclick="openDrawings()">
+                    <div class="mode-icon">🎨</div>
+                    <div class="mode-title">الرسومات</div>
+                    <div class="mode-desc">رسومات المنهج</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== شاشة الوحدات الفرعية للوحدة الثانية ===== -->
+        <div id="sub-units-screen">
+            <div class="header-small" style="position:relative; width:100%;">
+                <button onclick="backToUnitsFromSub()" style="position: absolute; left: 10px; top: 50%; transform:translateY(-50%); background: #ff0000; border: 2px solid #fff; border-radius: 8px; padding: 4px 8px; color: #fff; font-size: 11px; font-weight: 900; cursor: pointer; z-index: 10;">← رجوع</button>
+                <h1 style="font-size: 18px;">📚 الوحدة الثانية</h1>
+                <p style="font-size:12px;">التكاثر والنمو في الكائنات الحية</p>
+            </div>
+            <div class="units-grid" id="sub-units-grid"></div>
+        </div>
+        <!-- ===== نهاية شاشة الوحدات الفرعية ===== -->
+
+        <!-- ===== شاشة قائمة الامتحانات الشاملة ===== -->
+        <div id="exam-list-screen">
+            <div class="header-small" style="position:relative; width:100%;">
+                <button onclick="backToModeFromExamList()" style="position: absolute; left: 10px; top: 50%; transform:translateY(-50%); background: #ff0000; border: 2px solid #fff; border-radius: 8px; padding: 4px 8px; color: #fff; font-size: 11px; font-weight: 900; cursor: pointer; z-index: 10;">← رجوع</button>
+                <h1 style="font-size: 20px;">📄 الامتحانات الشاملة</h1>
+                <p style="font-size:12px;">من كامل الوحدات الثمانية</p>
+            </div>
+
+            <div class="exam-list-info">
+                📌 كل امتحان: <strong style="color:#fff;">30 سؤال عشوائي</strong> من كل الوحدات<br>
+                ✅ بعد انتهاء كل امتحان تُفتح الأسئلة التالية<br>
+                🔄 الأسئلة لا تتكرر حتى تنتهي كل الأسئلة
+            </div>
+
+            <div class="exam-list-grid" id="exam-list-grid"></div>
+        </div>
+
+        <div id="worksheets-screen">
+            <div class="header-small" style="position:relative;">
+                <button onclick="backToMode()" style="position: absolute; left: 10px; top: 50%; transform:translateY(-50%); background: #ff0000; border: 2px solid #fff; border-radius: 8px; padding: 4px 8px; color: #fff; font-size: 11px; font-weight: 900; cursor: pointer; z-index: 10;">← رجوع</button>
+                <h1 style="font-size: 22px;">📝 ورق عمل + امتحانات</h1>
+            </div>
+            <div class="units-grid" id="worksheets-grid"></div>
+        </div>
+
+        <div id="summaries-screen">
+            <div class="header-small" style="position:relative;">
+                <button onclick="backToMode()" style="position: absolute; left: 10px; top: 50%; transform:translateY(-50%); background: #ff0000; border: 2px solid #fff; border-radius: 8px; padding: 4px 8px; color: #fff; font-size: 11px; font-weight: 900; cursor: pointer; z-index: 10;">← رجوع</button>
+                <h1 style="font-size: 22px;">📋 ملخص الوحدات</h1>
+            </div>
+            <div class="units-grid" id="summaries-grid"></div>
+        </div>
+
+        <div id="activation-screen">
+            <div class="activation-box">
+                <h2>🔒 وحدة مدفوعة</h2>
+                <p style="font-size:18px; color:#FFD700; font-weight:900;">لفتح باقي الوحدات 3-8</p>
+                <div style="background:#001a33; padding:12px; border-radius:10px; border:1px solid #FFD700; margin:12px 0;">
+                    <p style="margin:5px 0; font-size:16px;">قيمة التفعيل: <span style="color:#00ff00; font-weight:900;">2000 جنيه فقط</span></p>
+                    <p style="margin:5px 0; font-size:15px;">بنكك: <span style="color:#FFD700;">4713368</span></p>
+                    <p style="margin:5px 0; font-size:15px;">باسم: عبدالله ارباب محمود</p>
+                </div>
+                <p style="background:#330000; padding:10px; border-radius:8px; border:1px solid #ff0; margin:12px 0;">
+                    <span style="color:#FFD700; font-size:15px;">رقم جهازك:</span><br>
+                    <div style="display:flex; align-items:center; justify-content:center; gap:8px; margin:8px 0;">
+                        <span id="device-id-display" style="font-size:18px; color:#00ff00; letter-spacing:1px; font-weight:900; background:#000; padding:6px 10px; border-radius:6px; border:1px solid #00ff00;"></span>
+                        <button id="copy-btn" onclick="copyDeviceId()" style="background:#0066ff; border:2px solid #fff; color:#fff; padding:6px 12px; border-radius:6px; font-size:14px; font-weight:bold; cursor:pointer;">نسخ</button>
+                    </div>
+                    <span style="font-size:13px; color:#fff;">اضغط نسخ وأرسله مع الإشعار على الواتساب</span>
+                    <span id="copy-success" style="display:none; color:#00ff00; font-size:13px; font-weight:bold;">✓ تم النسخ</span>
+                </p>
+                <p style="font-size:14px; color:#fff; line-height:1.8; text-align:right; margin:10px 0;">
+                    <span style="color:#FFD700;">بعد التحويل:</span><br>
+                    1. صور إشعار بنكك<br>
+                    2. ارسل الصورة + رقم جهازك<br>
+                    3. واتساب: <span style="color:#00ff00;">0968289028</span><br>
+                    4. تستلم الرقم السري فوراً
+                </p>
+                <input type="text" id="activationCode" placeholder="ادخل الرقم السري هنا">
+                <p id="activation-error">⚠️ الرقم السري غير صحيح</p>
+                <button class="next-btn" onclick="checkActivation()">تفعيل الآن</button>
+                <button class="next-btn" style="margin-top:10px; background:#aa0000; border-color:#fff;" onclick="backToUnitsFromActivation()">رجوع للوحدات</button>
+                <p style="color:#ff0; font-size:12px; margin-top:15px;">⚠️ ملاحظة: الرقم السري يعمل على جهاز واحد فقط</p>
+            </div>
+        </div>
+
+        <div id="name-screen">
+            <div class="activation-box">
+                <h2>📝 بيانات الامتحان</h2>
+                <p style="font-size:16px; color:#FFD700; margin-bottom:20px;">ادخل اسمك الثلاثي لدخول الامتحان الشامل</p>
+                <input type="text" id="studentName" placeholder="الاسم الثلاثي مثال: محمد احمد محمود">
+                <p id="name-error">⚠️ الاسم لازم يكون ثلاثي وأكثر من 9 أحرف</p>
+                <button class="next-btn" onclick="validateNameAndStart()">بدء الامتحان</button>
+                <button class="next-btn" style="margin-top:10px; background:#666; border-color:#fff;" onclick="changeStudentName()">تغيير الاسم</button>
+                <button class="next-btn" style="margin-top:10px; background:#aa0000; border-color:#fff;" onclick="backToModeFromName()">رجوع</button>
+                <p style="color:#ff0; font-size:12px; margin-top:15px;">ملاحظة: اسمك سيظهر في شهادة النتيجة</p>
+            </div>
+        </div>
+
+        <div id="unit-name-screen">
+            <div class="activation-box">
+                <h2>شهادة النتيجة</h2>
+                <p style="font-size:16px; color:#FFD700; margin-bottom:20px;">ادخل اسمك الثلاثي لعرض شهادة النتيجة</p>
+                <input type="text" id="unitStudentName" placeholder="الاسم الثلاثي مثال: محمد احمد محمود">
+                <p id="unit-name-error">⚠️ الاسم لازم يكون ثلاثي وأكثر من 9 أحرف</p>
+                <button class="next-btn" onclick="saveUnitName()">عرض النتيجة</button>
+                <button class="next-btn" style="margin-top:10px; background:#666; border-color:#fff;" onclick="changeUnitName()">تغيير الاسم</button>
+            </div>
+        </div>
+
+        <div id="units-screen">
+            <div class="header-small" style="position:relative;">
+                <button onclick="backToMode()" style="position: absolute; left: 10px; top: 50%; transform:translateY(-50%); background: #ff0000; border: 2px solid #fff; border-radius: 8px; padding: 4px 8px; color: #fff; font-size: 11px; font-weight: 900; cursor: pointer; z-index: 10;">← رجوع</button>
+                <h1 style="font-size: 22px;">📚 الوحدات الدراسية</h1>
+            </div>
+            <div class="units-grid" id="units-grid"></div>
+        </div>
+
+        <div id="game-screen">
+            <div class="game-top-bar">
+                <button class="back-units-btn" id="back-units-btn-label" onclick="backToUnits()">← الوحدات</button>
+<div class="lifelines-top">
+    <div class="lifeline" id="fifty" onclick="useFifty()">حذف إجابتين</div>
+    <div class="lifeline" id="audience" onclick="useAudience()">آراء الطلاب</div>
+    <div class="lifeline" id="phone" onclick="usePhone()">رأي صديقك</div>
+                </div>
+            </div>
+
+            <div class="sound-toggle" id="sound-toggle" onclick="toggleSound()">🔊</div>
+
+            <div class="grades-bar">
+                <div>الدرجة الكاملة: <span id="total-grade">0</span></div>
+                <div class="timer-circle" id="timer">30</div>
+                <div>الدرجة الحالية: <span id="current-grade">0</span></div>
+            </div>
+
+            <div class="grade-badge-old" id="grade-badge">التقدير: مقبول</div>
+
+            <div class="question-box-old">
+                <div class="question-text" id="question-text"></div>
+                <img id="question-image" class="question-image" style="display: none;">
+            </div>
+
+            <div class="options-container-old" id="options-container"></div>
+        </div>
+
+        <div id="complete-screen">
+            <div class="complete-box">
+                <h2>🎉 مبروك! 🎉</h2>
+                <p>أكملت الوحدة بنجاح بدرجة كاملة!</p>
+                <p style="font-size:14px; color:#FFD700;">تم فتح الوحدة التالية</p>
+                <button class="next-btn" onclick="backToUnitsFromComplete()">العودة للوحدات</button>
+            </div>
+        </div>
+
+        <div id="drop-game-screen">
+            <div class="header-small" style="position:relative;">
+                <h1 style="margin: 5px 0 0 0; font-size: 22px;" id="drop-game-title">🎨 تركيب الرسومات</h1>
+            </div>
+            <div class="note-alert" id="rasm-note">
+                ⚠️ <b>انتبه:</b> عند الدخول إلى أحد الرسومات اضغط ضغطة مطولة على الإجابة الصحيحة باللون الأصفر ثم اسحبها باصبعك إلى الرقم الصحيح في الدوائر
+            </div>
+            
+            <div style="background:#e3f2fd; min-height: calc(100vh - 80px); padding: 10px;">
+                <div class="drawing-controls-bar">
+                    <div class="btn-column">
+                        <button class="drop-back-btn" onclick="backToDrawingsList()">← رجوع للرسومات</button>
+                        <button class="drop-reset" onclick="resetDropGame()">إعادة</button>
+                    </div>
+                    <div class="drop-timer-center">
+                        <div class="timer" id="drawing-timer-display">02:00 ⏱️</div>
+                    </div>
+                </div>
+
+                <div id="rasm-select-area"></div>
+
+                <div id="rasm-game-area" style="display:none; position:relative; margin-top: 5px;">
+                    <div class="drop-score" id="drop-score">النتيجة: 11 / 0</div>
+                    <div id="game-wrapper">
+                        <div id="flower-box">
+                            <img id="flower-img" src="" alt="تركيب الزهرة">
+                        </div>
+                        <div id="game-area">
+                            <div id="labels"></div>
+                            <div id="drop-zones" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 140px; justify-items: center;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="image-modal" id="image-modal" onclick="closeImageModal()">
+            <span class="close">&times;</span>
+            <img id="modal-img" src="">
+        </div>
+
+        <div class="overlay">
+            <div class="result-box">
+                <div id="resultContent"></div>
+            </div>
+        </div>
+
+        <div class="modal" id="friendModal">
+            <div class="modal-content">
+                <h3>👥 العب مع زميلك</h3>
+                <p>اتفق مع زميلك على كود من 3 أرقام<br>وادخلوه انتوا الاثنين</p>
+                <input type="number" id="gameCode" placeholder="مثل: 123" min="100" max="999">
+                <button class="btn-start" onclick="startFriendGame()">ابدأ 10 أسئلة</button>
+                <button class="btn-cancel" onclick="closeFriendModal()">إلغاء</button>
+            </div>
+        </div>
+
+        <!-- ===== مودال الملخص ===== -->
+        <div id="summary-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:9999; justify-content:center; align-items:center;">
+            <div style="background:#FFFF00; width:90%; max-width:500px; max-height:90vh; border-radius:15px; padding:20px; overflow-y:auto; position:relative;">
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; position:sticky; top:0; background:#FFFF00; z-index:10; padding-bottom:8px; border-bottom:2px solid #ccc;">
+                    <button onclick="closeSummaryModal()" style="background:#cc0000; color:#fff; border:2px solid #000; border-radius:8px; padding:7px 16px; font-size:14px; font-weight:900; cursor:pointer;">← رجوع</button>
+                    <span style="color:#000; font-size:14px; font-weight:900;" id="summary-modal-title">ملخص الوحدة</span>
+                </div>
+                <div id="summary-modal-content" style="color:#000; font-size:16px; line-height:1.8; text-align:right;"></div>
+                <button onclick="closeSummaryModal()" style="margin-top:15px; width:100%; padding:12px; background:#FFD700; color:#000; border:2px solid #000; border-radius:8px; font-weight:900; font-size:18px; cursor:pointer;">حسناً ← رجوع</button>
+            </div>
+        </div>
+
+    </div><!-- end app-container -->
+
+    <audio id="audio-new-question" src="new-question.mp3" preload="auto"></audio>
+    <audio id="audio-waiting" src="waiting.mp3" preload="auto" loop></audio>
+    <audio id="audio-click" src="click.mp3" preload="auto"></audio>
+    <audio id="audio-correct" src="correct.mp3" preload="auto"></audio>
+    <audio id="audio-wrong" src="wrong.mp3" preload="auto"></audio>
+    <audio id="audio-fifty" src="fifty.mp3" preload="auto"></audio>
+    <audio id="audio-audience" src="audience.mp3" preload="auto"></audio>
+    <audio id="rasomat-music" src="rasomat-bg.mp3" loop></audio>
+
+    <script src="questions.js"></script>
+    <script>
+        window.unitsData = window.unitsData || {
+            1: { name: "جسم الإنسان", questions: [] },
+            2: { name: "التكاثر والنمو في الكائنات الحية", questions: [] },
+            '2a': { name: "التكاثر في النباتات الزهرية", questions: [] },
+            '2b': { name: "التكاثر الخضري", questions: [] },
+            '2c': { name: "التكاثر في الحيوانات", questions: [] },
+            3: { name: "العلاقة بين الكائنات", questions: [] },
+            4: { name: "الموارد الطبيعية", questions: [] },
+            5: { name: "المواد", questions: [] },
+            6: { name: "المحاليل والمخاليط", questions: [] },
+            7: { name: "الضوء", questions: [] },
+            8: { name: "الأرض والفضاء", questions: [] }
+        };
+
+        (function() {
+            var script = document.createElement('script');
+            script.src = 'questions.js';
+            script.onerror = function() { console.log('questions.js غير موجود'); };
+            script.onload = function() { console.log('تم تحميل questions.js'); renderUnits(); };
+            document.head.appendChild(script);
+        })();
+
+        // تحميل ملفات الوحدات الفرعية
+        function loadSubUnitQuestions(key, filename) {
+            return new Promise((resolve) => {
+                const script = document.createElement('script');
+                script.src = filename;
+                script.onload = function() {
+                    if (window[`questions${key.replace('2','unit2_')}`]) {
+                        unitsData[key].questions = window[`questions${key.replace('2','unit2_')}`];
+                    }
+                    resolve();
+                };
+                script.onerror = function() {
+                    console.log(`ملف ${filename} غير موجود`);
+                    resolve();
+                };
+                document.head.appendChild(script);
+            });
+        }
+
+        let currentMode = 'units';
+        let currentUnit = 0;
+        let currentQ = 0;
+        let score = 0;
+        let totalQuestions = 0;
+        let questions = [];
+        let usedLifelines = { fifty: false, audience: false, phone: false };
+        let soundEnabled = true;
+        let timerInterval;
+        let timeLeft = 30;
+        let studentFullName = '';
+        let unitStudentName = '';
+        let audioUnlocked = false;
+        let gameSeed = 0;
+        let currentExamNumber = 0;
+
+        const EXAM_QUESTIONS_COUNT = 30;
+        const TOTAL_EXAMS = 8;
+
+        // الوحدات الرئيسية (الوحدة 2 تظهر كبطاقة واحدة تفتح قائمة فرعية)
+        const units = [
+            { num: 1, name: 'جسم الإنسان' },
+            { num: 2, name: 'التكاثر والنمو في الكائنات الحية', hasSub: true },
+            { num: 3, name: 'العلاقة بين الكائنات الحية' },
+            { num: 4, name: 'الموارد الطبيعية' },
+            { num: 5, name: 'المواد' },
+            { num: 6, name: 'المحاليل والمخاليط' },
+            { num: 7, name: 'الضوء' },
+            { num: 8, name: 'الأرض والفضاء' }
+        ];
+
+        // الوحدات الفرعية للوحدة الثانية
+        const subUnits2 = [
+            { key: '2a', name: 'التكاثر في النباتات الزهرية', file: 'questions2a.js', icon: '🌸' },
+            { key: '2b', name: 'التكاثر الخضري', file: 'questions2b.js', icon: '🌿' },
+            { key: '2c', name: 'التكاثر في الحيوانات', file: 'questions2c.js', icon: '🐣' }
+        ];
+
+        let unlockedUnits = JSON.parse(localStorage.getItem('unlockedUnits') || '[1,2]');
+        let completedUnits = JSON.parse(localStorage.getItem('completedUnits') || '[]');
+
+        let dropCurrentRasm = null;
+        let dropScore = 0;
+        let dropTotal = 0;
+        let dropDragged = null;
+        let drawingTimerInterval;
+        let drawingTimeLeft = 120;
+
+        const rasomatNames = {
+            'ash3a': 'الأشعة الضوئية',
+            'bazra': 'تركيب البذرة',
+            'dofda': 'دورة حياة الضفدع',
+            'heart': 'تركيب القلب',
+            'ikraj': 'الإخراج في الإنسان',
+            'inkas': 'انعكاس الضوء',
+            'jarada': 'دورة حياة الجرادة',
+            'khosouf': 'خسوف القمر & كسوف الشمس',
+            'qamar': 'أطوار القمر',
+            'samaka': 'دورة حياة السمكة',
+            'zahra': 'تركيب الزهرة',
+            'zobaba': 'دورة حياة الذبابة'
+        };
+
+        // ===== دوال الوحدات الفرعية =====
+
+        function openSubUnits2() {
+            document.getElementById('units-screen').style.display = 'none';
+            document.getElementById('sub-units-screen').style.display = 'flex';
+            renderSubUnits2();
+        }
+
+        function backToUnitsFromSub() {
+            document.getElementById('sub-units-screen').style.display = 'none';
+            document.getElementById('units-screen').style.display = 'flex';
+        }
+
+        function renderSubUnits2() {
+            const grid = document.getElementById('sub-units-grid');
+            grid.innerHTML = '';
+
+            // جعل الشبكة عمود واحد للوحدات الفرعية
+            grid.style.gridTemplateColumns = '1fr';
+            grid.style.maxWidth = '340px';
+
+            subUnits2.forEach(sub => {
+                const isCompleted = completedUnits.includes(sub.key);
+                const card = document.createElement('div');
+                card.className = `unit-card sub-unit-card ${isCompleted ? 'completed' : ''}`;
+                const qCount = unitsData[sub.key] ? unitsData[sub.key].questions.length : '...';
+                card.innerHTML = `
+                    <div class="unit-num">${sub.icon}</div>
+                    <div class="unit-name" style="font-size:16px; font-weight:900; color:#fff;">${sub.name}</div>
+                    <div class="unit-questions" style="margin-top:6px;">( ${qCount} سؤال )</div>
+                    <div style="font-size:12px; color:#00ff88; margin-top:4px;">${isCompleted ? 'مكتملة ✓' : ''}</div>
+                `;
+                card.onclick = () => startSubUnit(sub.key, sub.file, sub.name);
+                grid.appendChild(card);
+            });
+        }
+
+        function startSubUnit(key, file, name) {
+            unlockAudio();
+            const script = document.createElement('script');
+            script.src = file;
+            script.onload = function() {
+                // جرب أسماء متعددة محتملة للمتغير
+                let qs = window[`questions${key}`] || window[`questionsUnit${key}`] || window[`unit${key}Questions`];
+                if (!qs) {
+                    alert(`⚠️ لا توجد أسئلة في ملف ${file}\nتأكد من اسم المتغير: questions${key}`);
+                    return;
+                }
+                unitsData[key] = { name: name, questions: qs };
+                questions = [...qs].sort(() => Math.random() - 0.5);
+                totalQuestions = questions.length;
+                currentUnit = key;
+                currentMode = 'units';
+                document.getElementById('sub-units-screen').style.display = 'none';
+                document.getElementById('total-grade').innerText = totalQuestions;
+                startGame();
+            };
+            script.onerror = function() {
+                alert(`⚠️ ملف ${file} غير موجود\nضع الملف في نفس مجلد index.html`);
+            };
+            document.head.appendChild(script);
+        }
+
+        // ===== دوال الامتحانات الشاملة =====
+
+        function getExamStats() {
+            const completedExams = JSON.parse(localStorage.getItem('completedExams') || '[]');
+            const usedQuestionsPerExam = JSON.parse(localStorage.getItem('usedExamQuestionsV2') || '{}');
+            return { completedExams, usedQuestionsPerExam };
+        }
+
+        function getAllQuestions() {
+            let allQuestions = [];
+            const allKeys = [1, '2a', '2b', '2c', 3, 4, 5, 6, 7, 8];
+            allKeys.forEach(key => {
+                if (unitsData[key] && unitsData[key].questions && unitsData[key].questions.length > 0) {
+                    unitsData[key].questions.forEach((q, index) => {
+                        allQuestions.push({ ...q, uniqueId: `U${key}_Q${index}` });
+                    });
+                }
+            });
+            // أيضاً من الوحدة 2 الأصلية إن وجدت
+            if (unitsData[2] && unitsData[2].questions && unitsData[2].questions.length > 0) {
+                unitsData[2].questions.forEach((q, index) => {
+                    allQuestions.push({ ...q, uniqueId: `U2_Q${index}` });
+                });
+            }
+            return allQuestions;
+        }
+
+        function renderExamList() {
+            const grid = document.getElementById('exam-list-grid');
+            grid.innerHTML = '';
+            const { completedExams } = getExamStats();
+            const nextExamNum = completedExams.length + 1;
+            const examNames = ['الأول', 'الثاني', 'الثالث', 'الرابع', 'الخامس', 'السادس', 'السابع', 'الثامن'];
+
+            for (let i = 1; i <= TOTAL_EXAMS; i++) {
+                const isDone = completedExams.includes(i);
+                const isAvailable = i === nextExamNum || isDone;
+                const isLocked = i > nextExamNum;
+                const card = document.createElement('div');
+                card.className = `exam-list-card ${isDone ? 'done' : ''} ${isLocked ? 'locked-exam' : ''}`;
+                let statusText = isDone ? 'مكتمل ✓' : isAvailable ? 'ابدأ الآن' : '🔒 مقفول';
+                let statusClass = isDone ? 'done-status' : isAvailable ? 'available' : 'locked-status';
+                let icon = isDone ? '✅' : isAvailable ? '📝' : '🔒';
+                card.innerHTML = `
+                    <div class="exam-card-icon">${icon}</div>
+                    <div class="exam-card-title">الامتحان ${examNames[i-1]}</div>
+                    <div class="exam-card-desc">30 سؤال عشوائي</div>
+                    <div class="exam-card-status ${statusClass}">${statusText}</div>
+                `;
+                if (isAvailable && !isLocked) card.onclick = () => startSpecificExam(i);
+                grid.appendChild(card);
+            }
+
+            const resetCard = document.createElement('div');
+            resetCard.style.cssText = 'grid-column: 1 / -1; margin-top: 5px;';
+            resetCard.innerHTML = `<button onclick="resetAllExams()" style="width:100%; padding:10px; background:#333; color:#aaa; border:1px solid #555; border-radius:10px; font-size:13px; cursor:pointer; font-weight:bold;">🔄 إعادة ضبط جميع الامتحانات</button>`;
+            grid.appendChild(resetCard);
+        }
+
+        function resetAllExams() {
+            if (confirm('هل تريد إعادة ضبط جميع الامتحانات الشاملة؟\nستُحذف جميع الأسئلة المستخدمة وتبدأ من الأول.')) {
+                localStorage.removeItem('completedExams');
+                localStorage.removeItem('usedExamQuestionsV2');
+                renderExamList();
+                alert('✅ تم الإعادة. يمكنك الآن بدء الامتحان الأول من جديد.');
+            }
+        }
+
+        function startSpecificExam(examNum) {
+            unlockAudio();
+            currentExamNumber = examNum;
+            showNameScreenForExam();
+        }
+
+        function showNameScreenForExam() {
+            document.getElementById('exam-list-screen').style.display = 'none';
+            document.getElementById('name-screen').style.display = 'flex';
+            document.getElementById('name-error').style.display = 'none';
+            const savedName = localStorage.getItem('savedStudentFullName');
+            document.getElementById('studentName').value = savedName || '';
+        }
+
+        function backToModeFromExamList() {
+            document.getElementById('exam-list-screen').style.display = 'none';
+            document.getElementById('mode-screen').style.display = 'flex';
+        }
+
+        // ===== الرسومات =====
+
+        function openDrawings() {
+            let html = `
+                <button onclick="backToMode()" style="position: absolute; left: 10px; top: 10px; background: #ff0000; border: 2px solid #fff; border-radius: 6px; padding: 4px 8px; color: #fff; font-size: 11px; font-weight: 900; cursor: pointer; z-index: 10;">← رجوع</button>
+                <div class="units-grid" style="margin-top: 40px;">
+            `;
+            for(let key in rasomatNames) {
+                html += `<div class="unit-card" onclick="loadRasm('${key}')"><div class="unit-num">🎨</div><div class="unit-name">${rasomatNames[key]}</div><div class="unit-questions">اضغط للبدء</div></div>`;
+            }
+            html += '</div>';
+            document.getElementById('mode-screen').style.display = 'none';
+            document.getElementById('drop-game-screen').style.display = 'flex';
+            document.getElementById('drop-game-title').innerText = '🎨 اختر الرسمة';
+            document.getElementById('rasm-select-area').innerHTML = html;
+            document.getElementById('rasm-select-area').style.display = 'block';
+            document.getElementById('rasm-game-area').style.display = 'none';
+            document.querySelector('.drawing-controls-bar').style.display = 'none';
+            clearInterval(drawingTimerInterval);
+        }
+
+        function backToDrawingsList() {
+            document.getElementById('rasm-note').style.display = 'block';
+            clearInterval(drawingTimerInterval);
+            document.getElementById('rasomat-music').pause();
+            document.getElementById('rasomat-music').currentTime = 0;
+            document.getElementById('rasm-game-area').style.display = 'none';
+            document.getElementById('rasm-select-area').style.display = 'block';
+            document.getElementById('drawing-timer-display').style.display = 'none';
+            document.getElementById('drop-game-title').innerText = '🎨 اختر الرسمة';
+            document.querySelector('.drop-back-btn').style.display = 'none';
+            document.querySelector('.drop-reset').style.display = 'none';
+        }
+
+        function startDrawingTimer() {
+            clearInterval(drawingTimerInterval);
+            drawingTimeLeft = 120;
+            updateDrawingTimerDisplay();
+            document.getElementById('drawing-timer-display').style.display = 'block';
+            document.getElementById('drawing-timer-display').classList.remove('low');
+            drawingTimerInterval = setInterval(() => {
+                drawingTimeLeft--;
+                updateDrawingTimerDisplay();
+                if (drawingTimeLeft <= 30) document.getElementById('drawing-timer-display').classList.add('low');
+                if (drawingTimeLeft <= 0) {
+                    clearInterval(drawingTimerInterval);
+                    document.getElementById('rasomat-music').pause();
+                    document.getElementById('rasomat-music').currentTime = 0;
+                    alert('⏰ انتهى الوقت! حاول مرة تانية');
+                    backToDrawingsList();
+                }
+            }, 1000);
+        }
+
+        function updateDrawingTimerDisplay() {
+            const minutes = Math.floor(drawingTimeLeft / 60);
+            const seconds = drawingTimeLeft % 60;
+            document.getElementById('drawing-timer-display').innerText = `⏱️ ${minutes.toString().padStart(2,'0')}:${seconds.toString().padStart(2,'0')}`;
+        }
+
+        function loadRasm(rasmKey) {
+            document.getElementById('rasomat-music').play().catch(e => {});
+            const script = document.createElement('script');
+            script.src = `rasomat/${rasmKey}.js`;
+            script.onload = function() {
+                dropCurrentRasm = window.currentRasmData;
+                document.getElementById('rasm-select-area').style.display = 'none';
+                document.getElementById('rasm-game-area').style.display = 'block';
+                document.getElementById('rasm-note').style.display = 'none';
+                document.querySelector('.drop-back-btn').style.display = 'block';
+                document.querySelector('.drop-reset').style.display = 'block';
+                document.querySelector('.drawing-controls-bar').style.display = 'flex';
+                buildDropGame();
+                startDrawingTimer();
+            };
+            script.onerror = function() { alert('ملف الرسمة rasomat/' + rasmKey + '.js غير موجود'); };
+            document.head.appendChild(script);
+        }
+
+        function buildDropGame() {
+            if (!dropCurrentRasm) return;
+            document.getElementById('rasm-select-area').style.display = 'none';
+            document.getElementById('rasm-game-area').style.display = 'block';
+            document.getElementById('drop-game-title').innerText = '🎨 ' + dropCurrentRasm.title;
+            document.getElementById('flower-img').src = dropCurrentRasm.img;
+            document.getElementById('flower-img').style.display = 'block';
+            dropScore = 0;
+            dropTotal = Object.keys(dropCurrentRasm.parts).length;
+            updateDropScore();
+            const zones = document.getElementById('drop-zones');
+            const labels = document.getElementById('labels');
+            zones.innerHTML = '';
+            labels.innerHTML = '';
+            let numbersOrder;
+            if (dropCurrentRasm.title === 'تركيب القلب') {
+                numbersOrder = [1,4,7,2,5,8,3,6];
+                document.getElementById('drop-zones').style.gridTemplateColumns = 'repeat(3, 1fr)';
+                document.getElementById('drop-zones').style.width = '120px';
+                document.getElementById('drop-zones').style.gap = '4px 8px';
+            } else {
+                numbersOrder = [1,7,2,8,3,9,4,10,5,11,6];
+                document.getElementById('drop-zones').style.gridTemplateColumns = 'repeat(2, 1fr)';
+                document.getElementById('drop-zones').style.width = '90px';
+                document.getElementById('drop-zones').style.gap = '2px 5px';
+            }
+            numbersOrder.forEach(i => {
+                if(!dropCurrentRasm.parts[i]) return;
+                const zone = document.createElement('div');
+                zone.className = 'drop-zone';
+                zone.id = 'zone-' + i;
+                zone.dataset.num = i;
+                zone.textContent = i;
+                zone.addEventListener('dragover', e => e.preventDefault());
+                zone.addEventListener('drop', dropLabel);
+                zones.appendChild(zone);
+            });
+            const shuffled = Object.entries(dropCurrentRasm.parts).sort(() => Math.random() - 0.5);
+            shuffled.forEach(([num, text]) => {
+                const label = document.createElement('div');
+                label.className = 'draggable';
+                label.draggable = true;
+                label.id = 'label-' + num;
+                label.dataset.num = num;
+                label.textContent = text;
+                label.addEventListener('dragstart', e => { dropDragged = e.target; e.target.classList.add('dragging'); });
+                label.addEventListener('dragend', e => e.target.classList.remove('dragging'));
+                labels.appendChild(label);
+            });
+        }
+
+        function dropLabel(e) {
+            e.preventDefault();
+            const zone = e.target.closest('.drop-zone');
+            if (!zone || !dropDragged || zone.classList.contains('correct')) return;
+            const labelsContainer = document.getElementById('labels');
+            labelsContainer.style.pointerEvents = 'none';
+            if (zone.dataset.num === dropDragged.dataset.num) {
+                zone.innerHTML = "✔️";
+                zone.classList.add('correct');
+                zone.classList.remove('wrong');
+                dropDragged.classList.add('used');
+                dropDragged.draggable = false;
+                dropScore++;
+                updateDropScore();
+                labelsContainer.style.pointerEvents = 'auto';
+                if (dropScore === dropTotal) {
+                    clearInterval(drawingTimerInterval);
+                    document.getElementById('rasomat-music').pause();
+                    document.getElementById('rasomat-music').currentTime = 0;
+                    setTimeout(() => { alert('🎉 مبروك! أكملت الرسمة بنجاح'); backToDrawingsList(); }, 800);
+                }
+            } else {
+                zone.innerHTML = "✖️";
+                zone.classList.add('wrong');
+                zone.classList.remove('correct');
+                clearInterval(drawingTimerInterval);
+                document.getElementById('rasomat-music').pause();
+                setTimeout(() => { labelsContainer.style.pointerEvents = 'auto'; resetDropGame(); }, 1200);
+            }
+        }
+
+        function updateDropScore() {
+            document.getElementById('drop-score').innerText = `النتيجة: ${dropScore} / ${dropTotal}`;
+        }
+
+        function resetDropGame() {
+            if (dropCurrentRasm) {
+                clearInterval(drawingTimerInterval);
+                document.getElementById('rasomat-music').currentTime = 0;
+                document.getElementById('rasomat-music').play().catch(e => {});
+                buildDropGame();
+                startDrawingTimer();
+            }
+        }
+
+        // ===== التفعيل =====
+
+        function generateDeviceId() {
+            let deviceId = localStorage.getItem('deviceId');
+            if (!deviceId) {
+                deviceId = 'DK' + Math.random().toString(36).substr(2, 9).toUpperCase();
+                localStorage.setItem('deviceId', deviceId);
+            }
+            return deviceId;
+        }
+
+        const SECRET_KEY = "AliGame2026Sudani";
+
+        function generateActivationCode(deviceId) {
+            return btoa(deviceId + SECRET_KEY).slice(0, 8).toUpperCase();
+        }
+
+        function isActivated() {
+            const savedCode = localStorage.getItem('activationCode');
+            const deviceId = generateDeviceId();
+            const correctCode = generateActivationCode(deviceId);
+            return savedCode === correctCode;
+        }
+
+        function copyDeviceId() {
+            const deviceId = document.getElementById('device-id-display').innerText;
+            navigator.clipboard.writeText(deviceId).then(() => {
+                document.getElementById('copy-btn').innerText = '✓ تم';
+                document.getElementById('copy-btn').style.background = '#00aa00';
+                document.getElementById('copy-success').style.display = 'block';
+                setTimeout(() => {
+                    document.getElementById('copy-btn').innerText = 'نسخ';
+                    document.getElementById('copy-btn').style.background = '#0066ff';
+                    document.getElementById('copy-success').style.display = 'none';
+                }, 2000);
+            }).catch(() => { alert('انسخ الرقم يدوياً: ' + deviceId); });
+        }
+
+        function showActivationScreen() {
+            document.getElementById('units-screen').style.display = 'none';
+            document.getElementById('activation-screen').style.display = 'flex';
+            document.getElementById('device-id-display').innerText = generateDeviceId();
+            document.getElementById('activation-error').style.display = 'none';
+            document.getElementById('activationCode').value = '';
+        }
+
+        function backToUnitsFromActivation() {
+            document.getElementById('activation-screen').style.display = 'none';
+            document.getElementById('units-screen').style.display = 'flex';
+        }
+
+        function checkActivation() {
+            const enteredCode = document.getElementById('activationCode').value.trim().toUpperCase();
+            const deviceId = generateDeviceId();
+            const correctCode = generateActivationCode(deviceId);
+            if (enteredCode === correctCode) {
+                localStorage.setItem('activationCode', enteredCode);
+                alert('✅ تم التفعيل بنجاح!\nتم فتح جميع الوحدات والامتحان الشامل');
+                document.getElementById('activation-screen').style.display = 'none';
+                document.getElementById('units-screen').style.display = 'flex';
+                renderUnits();
+            } else {
+                document.getElementById('activation-error').style.display = 'block';
+            }
+        }
+
+        function showNameScreen() {
+            document.getElementById('mode-screen').style.display = 'none';
+            document.getElementById('name-screen').style.display = 'flex';
+            document.getElementById('name-error').style.display = 'none';
+            const savedName = localStorage.getItem('savedStudentFullName');
+            document.getElementById('studentName').value = savedName || '';
+        }
+
+        function backToModeFromName() {
+            document.getElementById('name-screen').style.display = 'none';
+            if (currentExamNumber > 0) {
+                document.getElementById('exam-list-screen').style.display = 'flex';
+                renderExamList();
+            } else {
+                document.getElementById('mode-screen').style.display = 'flex';
+            }
+        }
+
+        function changeStudentName() {
+            localStorage.removeItem('savedStudentFullName');
+            document.getElementById('studentName').value = '';
+            studentFullName = '';
+            alert('تقدر تكتب اسم جديد الآن');
+        }
+
+        function validateNameAndStart() {
+            const nameInput = document.getElementById('studentName').value.trim();
+            const nameParts = nameInput.split(' ').filter(part => part.length > 0);
+            const isValid = nameParts.length >= 3 && nameInput.length >= 9;
+            if (!isValid) {
+                document.getElementById('name-error').style.display = 'block';
+                document.getElementById('studentName').style.border = '2px solid #ff0000';
+                return;
+            }
+            studentFullName = nameInput;
+            localStorage.setItem('savedStudentFullName', nameInput);
+            document.getElementById('name-screen').style.display = 'none';
+            startFinalExam();
+        }
+
+        function startFinalExam() {
+            unlockAudio();
+            stopAllAudio();
+            const allQuestions = getAllQuestions();
+            if (allQuestions.length === 0) {
+                alert('⚠️ لا توجد أسئلة!\nتأكد من وجود ملف questions.js');
+                backToMode();
+                return;
+            }
+            let usedQuestionIds = JSON.parse(localStorage.getItem('usedExamQuestionsV2') || '[]');
+            let availableQuestions = allQuestions.filter(q => !usedQuestionIds.includes(q.uniqueId));
+            if (availableQuestions.length < EXAM_QUESTIONS_COUNT) {
+                usedQuestionIds = [];
+                availableQuestions = allQuestions;
+                localStorage.removeItem('usedExamQuestionsV2');
+                if (allQuestions.length >= EXAM_QUESTIONS_COUNT) {
+                    alert('ممتاز! أنهيت كل أسئلة المنهج. حنبدأ دورة أسئلة جديدة 🔄');
+                    localStorage.removeItem('completedExams');
+                }
+            }
+            questions = [...availableQuestions].sort(() => Math.random() - 0.5).slice(0, Math.min(EXAM_QUESTIONS_COUNT, availableQuestions.length));
+            const newUsedIds = questions.map(q => q.uniqueId);
+            usedQuestionIds = [...usedQuestionIds, ...newUsedIds];
+            localStorage.setItem('usedExamQuestionsV2', JSON.stringify(usedQuestionIds));
+            totalQuestions = questions.length;
+            currentUnit = 'الامتحان الشامل';
+            document.getElementById('total-grade').innerText = totalQuestions;
+            startGame();
+        }
+
+        function selectMode(mode) {
+            unlockAudio();
+            currentMode = mode;
+            if (mode === 'units') {
+                document.getElementById('mode-screen').style.display = 'none';
+                document.getElementById('units-screen').style.display = 'flex';
+                renderUnits();
+            } else if (mode === 'exam') {
+                if (!isActivated()) {
+                    alert('⚠️ الامتحان الشامل مدفوع\nلأنه يحتوي على أسئلة من الوحدات 3-8\nقم بتفعيل النسخة الكاملة أولاً');
+                    return;
+                }
+                currentExamNumber = 0;
+                document.getElementById('mode-screen').style.display = 'none';
+                document.getElementById('exam-list-screen').style.display = 'flex';
+                renderExamList();
+            }
+        }
+
+        function backToMode() {
+            const rasmMusic = document.getElementById('rasomat-music');
+            rasmMusic.pause();
+            rasmMusic.currentTime = 0;
+            clearInterval(drawingTimerInterval);
+            document.getElementById('units-screen').style.display = 'none';
+            document.getElementById('sub-units-screen').style.display = 'none';
+            document.getElementById('game-screen').style.display = 'none';
+            document.getElementById('complete-screen').style.display = 'none';
+            document.getElementById('name-screen').style.display = 'none';
+            document.getElementById('unit-name-screen').style.display = 'none';
+            document.getElementById('worksheets-screen').style.display = 'none';
+            document.getElementById('summaries-screen').style.display = 'none';
+            document.getElementById('drop-game-screen').style.display = 'none';
+            document.getElementById('exam-list-screen').style.display = 'none';
+            document.querySelector('.overlay').style.display = 'none';
+            document.getElementById('mode-screen').style.display = 'flex';
+            clearInterval(timerInterval);
+            stopAllAudio();
+        }
+
+        function getQuestionCount(unitNum) {
+            if (unitsData[unitNum] && unitsData[unitNum].questions) return unitsData[unitNum].questions.length;
+            return 0;
+        }
+
+        function updateGradeBadge() {
+            const badge = document.getElementById('grade-badge');
+            const percent = totalQuestions > 0 ? (score / totalQuestions) * 100 : 0;
+            if (score === 0) { badge.classList.remove('show'); return; }
+            badge.classList.add('show');
+            if (score === totalQuestions) badge.innerText = 'التقدير: ممتاز';
+            else if (percent >= 75) badge.innerText = 'التقدير: جيد جداً';
+            else if (percent >= 50) badge.innerText = 'التقدير: جيد';
+            else badge.innerText = 'التقدير: مقبول';
+        }
+
+        function openImageModal(src) {
+            document.getElementById('modal-img').src = src;
+            document.getElementById('image-modal').style.display = 'flex';
+        }
+        function closeImageModal() { document.getElementById('image-modal').style.display = 'none'; }
+
+        function stopAllAudio() {
+            document.querySelectorAll('audio').forEach(audio => { audio.pause(); audio.currentTime = 0; });
+        }
+
+        function playSound(id, loop = false) {
+            if (!soundEnabled) return;
+            const audio = document.getElementById(id);
+            if (audio) { audio.loop = loop; audio.currentTime = 0; audio.play().catch(e => {}); }
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            document.getElementById('sound-toggle').innerText = soundEnabled ? '🔊' : '🔇';
+            if (!soundEnabled) stopAllAudio();
+        }
+
+        function renderUnits() {
+            const grid = document.getElementById('units-grid');
+            grid.innerHTML = '';
+
+            units.forEach(unit => {
+                const isFree = unit.num <= 2;
+                const isUnlocked = isFree || isActivated();
+                const isCompleted = completedUnits.includes(unit.num);
+
+                if (unit.hasSub) {
+                    // الوحدة الثانية تمتد على عرض كامل وتفتح قائمة فرعية
+                    const card = document.createElement('div');
+                    card.className = `unit-card unit-card-full ${isCompleted ? 'completed' : ''}`;
+                    const qTotal = (getQuestionCount('2a') + getQuestionCount('2b') + getQuestionCount('2c')) || getQuestionCount(2);
+                    card.innerHTML = `
+                        <div style="font-size:16px; color:#c77dff; font-weight:900; margin-bottom:6px;">الوحدة الثانية ▾</div>
+                        <div class="unit-name" style="font-size:15px; font-weight:900;">${unit.name}</div>
+                        <div style="display:flex; justify-content:center; gap:15px; margin-top:8px; font-size:12px; color:#FFD700;">
+                            <span>🌸 نباتات زهرية</span>
+                            <span>🌿 خضري</span>
+                            <span>🐣 حيوانات</span>
+                        </div>
+                        <div class="unit-questions" style="margin-top:6px;">اضغط لاختيار الوحدة الفرعية</div>
+                        <div style="font-size:12px; color:#00ff88; margin-top:4px;">${isCompleted ? 'مكتملة ✓' : ''}</div>
+                    `;
+                    card.onclick = () => openSubUnits2();
+                    grid.appendChild(card);
+                } else {
+                    const card = document.createElement('div');
+                    card.className = `unit-card ${!isUnlocked ? 'locked' : ''} ${isCompleted ? 'completed' : ''}`;
+                    const qCount = getQuestionCount(unit.num);
+                    card.innerHTML = `
+                        <div class="unit-num">الوحدة ${unit.num}</div>
+                        <div class="unit-name">${unit.name}</div>
+                        <div class="unit-questions">( ${qCount} سؤال )</div>
+                        <div class="unit-progress">${isCompleted ? 'مكتملة ✓' : !isFree && !isActivated() ? '🔒 مقفولة' : ''}</div>
+                    `;
+                    if (isUnlocked) card.onclick = () => startUnit(unit.num);
+                    else card.onclick = () => showActivationScreen();
+                    grid.appendChild(card);
+                }
+            });
+        }
+
+        function startUnit(unitNum) {
+            unlockAudio();
+            const isFree = unitNum <= 2;
+            if (!isFree && !isActivated()) { showActivationScreen(); return; }
+            stopAllAudio();
+            currentUnit = unitNum;
+            if (!unitsData[unitNum] || !unitsData[unitNum].questions || unitsData[unitNum].questions.length === 0) {
+                alert('⚠️ لا توجد أسئلة في الوحدة ' + unitNum + '\nتأكد من ملف questions.js');
+                backToUnits();
+                return;
+            }
+            questions = [...unitsData[unitNum].questions].sort(() => Math.random() - 0.5);
+            totalQuestions = questions.length;
+            document.getElementById('total-grade').innerText = totalQuestions;
+            startGame();
+        }
+
+        function startGame() {
+            currentQ = 0;
+            score = 0;
+            usedLifelines = { fifty: false, audience: false, phone: false };
+            document.getElementById('fifty').classList.remove('used');
+            document.getElementById('audience').classList.remove('used');
+            document.getElementById('phone').classList.remove('used');
+            document.getElementById('current-grade').innerText = '0';
+            document.getElementById('grade-badge').classList.remove('show');
+            document.getElementById('units-screen').style.display = 'none';
+            document.getElementById('sub-units-screen').style.display = 'none';
+            document.getElementById('mode-screen').style.display = 'none';
+            document.getElementById('name-screen').style.display = 'none';
+            document.getElementById('unit-name-screen').style.display = 'none';
+            document.getElementById('exam-list-screen').style.display = 'none';
+            document.getElementById('worksheets-screen').style.display = 'none';
+            document.getElementById('game-screen').style.display = 'block';
+
+            const backBtn = document.getElementById('back-units-btn-label');
+            if (backBtn) {
+                if (currentUnit && currentUnit.toString().includes('ورق عمل')) backBtn.innerText = '← ورق العمل';
+                else if (currentMode === 'exam') backBtn.innerText = '← الامتحانات';
+                else if (['2a','2b','2c'].includes(currentUnit)) backBtn.innerText = '← الوحدة الثانية';
+                else backBtn.innerText = '← الوحدات';
+            }
+
+            loadQuestion();
+        }
+
+        function backToUnits() {
+            clearInterval(timerInterval);
+            stopAllAudio();
+
+            if (currentUnit && currentUnit.toString().includes('ورق عمل')) {
+                document.getElementById('game-screen').style.display = 'none';
+                document.getElementById('worksheets-screen').style.display = 'flex';
+                return;
+            }
+            if (currentUnit && currentUnit.toString().includes('امتحانات متنوعة')) {
+                document.getElementById('game-screen').style.display = 'none';
+                document.getElementById('worksheets-screen').style.display = 'flex';
+                return;
+            }
+            // إذا كانت وحدة فرعية ارجع لشاشة الوحدات الفرعية
+            if (['2a','2b','2c'].includes(currentUnit)) {
+                document.getElementById('game-screen').style.display = 'none';
+                document.getElementById('sub-units-screen').style.display = 'flex';
+                renderSubUnits2();
+                return;
+            }
+            if (currentMode === 'exam' || (currentUnit && currentUnit.toString().includes('العب'))) {
+                document.getElementById('game-screen').style.display = 'none';
+                if (currentMode === 'exam') {
+                    document.getElementById('exam-list-screen').style.display = 'flex';
+                    renderExamList();
+                } else {
+                    document.getElementById('mode-screen').style.display = 'flex';
+                }
+            } else {
+                document.getElementById('game-screen').style.display = 'none';
+                document.getElementById('units-screen').style.display = 'flex';
+                renderUnits();
+            }
+        }
+
+        function backToUnitsFromComplete() {
+            document.getElementById('complete-screen').style.display = 'none';
+            if (['2a','2b','2c'].includes(currentUnit)) {
+                document.getElementById('sub-units-screen').style.display = 'flex';
+                renderSubUnits2();
+            } else {
+                document.getElementById('units-screen').style.display = 'flex';
+                renderUnits();
+            }
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            timeLeft = 30;
+            document.getElementById('timer').innerText = timeLeft;
+            document.getElementById('timer').classList.remove('low');
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timer').innerText = timeLeft;
+                if (timeLeft <= 10) document.getElementById('timer').classList.add('low');
+                if (timeLeft <= 0) { clearInterval(timerInterval); timeUp(); }
+            }, 1000);
+        }
+
+        function timeUp() {
+            stopAllAudio();
+            let q = questions[currentQ];
+            let options = document.querySelectorAll('.option-old');
+            options.forEach(opt => opt.classList.add('disabled'));
+            options.forEach(opt => { if (opt.getAttribute('data-index') == q.answer) opt.classList.add('correct'); });
+            playSound('audio-wrong');
+            setTimeout(() => { showResult(); }, 1500);
+        }
+
+        function loadQuestion() {
+            const oldComment = document.getElementById('wrong-comment');
+            if (oldComment) oldComment.remove();
+
+            if (currentQ >= totalQuestions) {
+                clearInterval(timerInterval);
+                stopAllAudio();
+                if (currentMode === 'units' && score === totalQuestions && totalQuestions > 0 && !currentUnit.toString().includes('العب')) {
+                    if (!completedUnits.includes(currentUnit)) {
+                        completedUnits.push(currentUnit);
+                        // إذا أكمل الوحدات الفرعية الثلاث افتح الوحدة 3
+                        if (currentUnit === '2c' && !unlockedUnits.includes(3)) unlockedUnits.push(3);
+                        if (typeof currentUnit === 'number' && currentUnit < 8 && !unlockedUnits.includes(currentUnit + 1)) unlockedUnits.push(currentUnit + 1);
+                        localStorage.setItem('completedUnits', JSON.stringify(completedUnits));
+                        localStorage.setItem('unlockedUnits', JSON.stringify(unlockedUnits));
+                    }
+                    document.getElementById('game-screen').style.display = 'none';
+                    document.getElementById('complete-screen').style.display = 'flex';
+                    playSound('audio-correct');
+                } else {
+                    if (currentMode === 'exam' && currentExamNumber > 0) {
+                        let completedExams = JSON.parse(localStorage.getItem('completedExams') || '[]');
+                        if (!completedExams.includes(currentExamNumber)) {
+                            completedExams.push(currentExamNumber);
+                            localStorage.setItem('completedExams', JSON.stringify(completedExams));
+                        }
+                    }
+                    showResult();
+                }
+                return;
+            }
+
+            startTimer();
+            let q = questions[currentQ];
+            document.getElementById('question-text').innerText = q.q;
+            let questionImage = document.getElementById('question-image');
+            if (q.image) {
+                questionImage.src = q.image;
+                questionImage.style.display = 'block';
+                questionImage.onclick = () => openImageModal(q.image);
+            } else {
+                questionImage.style.display = 'none';
+            }
+
+            const symbols = ['أ', 'ب', 'ج', 'د'];
+            let optionsArray = q.options.map((opt, i) => ({ text: opt, index: i }));
+            optionsArray.sort(() => Math.random() - 0.5);
+            let optionsHTML = '';
+            optionsArray.forEach((opt, i) => {
+                optionsHTML += `<div class="option-old" data-index="${opt.index}" onclick="checkAnswer(${opt.index})">${symbols[i]}: ${opt.text}</div>`;
+            });
+            document.getElementById('options-container').innerHTML = optionsHTML;
+            playSound('audio-new-question');
+            setTimeout(() => { playSound('audio-waiting', true); }, 1000);
+        }
+
+        function checkAnswer(selected) {
+            clearInterval(timerInterval);
+            stopAllAudio();
+            playSound('audio-click');
+            let q = questions[currentQ];
+            let options = document.querySelectorAll('.option-old');
+            options.forEach(opt => opt.classList.add('disabled'));
+            setTimeout(() => {
+                stopAllAudio();
+                if (selected === q.answer) {
+                    options.forEach(opt => { if (opt.getAttribute('data-index') == selected) opt.classList.add('correct'); });
+                    playSound('audio-correct');
+                    score++;
+                    document.getElementById('current-grade').innerText = score;
+                    updateGradeBadge();
+                    setTimeout(() => { stopAllAudio(); currentQ++; loadQuestion(); }, 3000);
+                } else {
+                    options.forEach(opt => {
+                        if (opt.getAttribute('data-index') == selected) opt.classList.add('wrong');
+                        if (opt.getAttribute('data-index') == q.answer) opt.classList.add('correct');
+                    });
+                    playSound('audio-wrong');
+                    const questionBox = document.querySelector('.question-box-old');
+                    const commentDiv = document.createElement('div');
+                    commentDiv.style.cssText = 'background:#ff0000; color:#fff; padding:15px; margin-top:15px; border-radius:8px; font-weight:bold; font-size:16px; text-align:center; border:3px solid #fff;';
+                    commentDiv.innerHTML = '❌ إجابة خاطئة!<br>الإجابة الصحيحة: ' + q.options[q.answer];
+                    commentDiv.id = 'wrong-comment';
+                    questionBox.appendChild(commentDiv);
+                    setTimeout(() => { showResult(); }, 3000);
+                }
+            }, 2000);
+        }
+
+        function useFifty() {
+            if (usedLifelines.fifty) return;
+            usedLifelines.fifty = true;
+            document.getElementById('fifty').classList.add('used');
+            playSound('audio-fifty');
+            let q = questions[currentQ];
+            let options = document.querySelectorAll('.option-old');
+            let wrong = [];
+            options.forEach(opt => { if (opt.getAttribute('data-index') != q.answer) wrong.push(opt); });
+            wrong.sort(() => 0.5 - Math.random());
+            wrong[0].style.visibility = 'hidden';
+            wrong[1].style.visibility = 'hidden';
+        }
+
+        function useAudience() {
+            if (usedLifelines.audience) return;
+            usedLifelines.audience = true;
+            document.getElementById('audience').classList.add('used');
+            playSound('audio-audience');
+            let q = questions[currentQ];
+            let options = document.querySelectorAll('.option-old');
+            let visibleOptions = [];
+            const symbols = ['أ', 'ب', 'ج', 'د'];
+            options.forEach((opt, i) => {
+                if (opt.style.visibility !== 'hidden') visibleOptions.push({ index: parseInt(opt.getAttribute('data-index')), text: opt.innerText.split(': ')[1] || opt.innerText, symbol: symbols[i] });
+            });
+            let correctPercent = Math.floor(Math.random() * 21) + 65;
+            let remainingPercent = 100 - correctPercent;
+            let wrongOptions = visibleOptions.filter(opt => opt.index != q.answer);
+            let percentages = {};
+            percentages[q.answer] = correctPercent;
+            if (wrongOptions.length > 0) {
+                let perWrong = Math.floor(remainingPercent / wrongOptions.length);
+                let extra = remainingPercent % wrongOptions.length;
+                wrongOptions.forEach((opt, i) => { percentages[opt.index] = perWrong + (i < extra ? 1 : 0); });
+            }
+            setTimeout(() => {
+     let resultText = 'نتيجة آراء الطلاب:\n';
+                visibleOptions.forEach(opt => { resultText += `${opt.symbol}: ${opt.text}: ${percentages[opt.index]}%\n`; });
+                alert(resultText);
+            }, 1500);
+        }
+
+        function usePhone() {
+            if (usedLifelines.phone) return;
+            usedLifelines.phone = true;
+            document.getElementById('phone').classList.add('used');
+            let q = questions[currentQ];
+            setTimeout(() => { alert('صديقك يقول: أعتقد الإجابة هي\n"' + q.options[q.answer] + '"'); }, 1500);
+        }
+
+        function changeUnitName() {
+            localStorage.removeItem('savedUnitStudentName');
+            document.getElementById('unitStudentName').value = '';
+            unitStudentName = '';
+            alert('تقدر تكتب اسم جديد الآن');
+        }
+
+        function saveUnitName() {
+            const nameInput = document.getElementById('unitStudentName').value.trim();
+            const nameParts = nameInput.split(' ').filter(part => part.length > 0);
+            const isValid = nameParts.length >= 3 && nameInput.length >= 9;
+            if (!isValid) {
+                document.getElementById('unit-name-error').style.display = 'block';
+                document.getElementById('unitStudentName').style.border = '2px solid #ff0000';
+                return;
+            }
+            document.getElementById('unit-name-error').style.display = 'none';
+            document.getElementById('unitStudentName').style.border = '2px solid #FFD700';
+            unitStudentName = nameInput;
+            localStorage.setItem('savedUnitStudentName', nameInput);
+            document.getElementById('unit-name-screen').style.display = 'none';
+            showCertificateAfterName();
+        }
+
+        function showCertificateAfterName() {
+            const correct = score;
+            const total = totalQuestions;
+            const percent = total > 0 ? (correct / total) * 100 : 0;
+            let gradeText = percent < 50 ? 'مقبول' : percent < 60 ? 'مقبول' : percent < 70 ? 'جيد' : percent < 80 ? 'جيد جداً' : 'ممتاز';
+            let resultText = percent < 50 ? 'راسب' : 'ناجح';
+            const resultHTML = `
+                <div style="font-size:18px; margin-bottom:12px; text-align:right;"><span style="color:#FFD700; font-weight:bold;">الاسم : </span><span style="color:#fff;">${unitStudentName}</span></div>
+                <div style="font-size:18px; margin-bottom:12px; text-align:right;"><span style="color:#FFD700; font-weight:bold;">النتيجة: </span><span style="color:#fff;">${resultText}</span></div>
+                <div style="font-size:18px; margin-bottom:12px; text-align:right;"><span style="color:#FFD700; font-weight:bold;">التقدير: </span><span style="color:#fff;">${gradeText}</span></div>
+                <div style="font-size:18px; margin-bottom:20px; text-align:right;"><span style="color:#FFD700; font-weight:bold;">نسبة النجاح : </span><span style="color:#fff;">${percent.toFixed(0)}%</span></div>
+                <div style="margin-top:20px; text-align:center;">
+                    <p style="font-size:15px; font-weight:bold; color:#FFD700;">معلمك القدير مبارك عبدالله ارباب</p>
+                    <button onclick="backToMode()" style="margin-top:12px; padding:10px 30px; font-size:16px; cursor:pointer; background:linear-gradient(135deg,#FFD700,#FFA500); border:2px solid #000; color:#000; border-radius:8px; font-weight:900;">رجوع للقائمة</button>
+                </div>`;
+            document.getElementById('resultContent').innerHTML = resultHTML;
+            document.querySelector('.overlay').style.display = 'flex';
+        }
+
+        function showResult() {
+            const correct = score;
+            const total = totalQuestions;
+            const percent = total > 0 ? (correct / total) * 100 : 0;
+
+if (currentUnit === 1 || 
+    ['2a','2b','2c'].includes(currentUnit) || 
+    (currentUnit && currentUnit.toString().includes('العب'))) {
+                const savedName = localStorage.getItem('savedUnitStudentName') || unitStudentName;
+                if (savedName) { document.getElementById('unitStudentName').value = savedName; unitStudentName = savedName; }
+                else document.getElementById('unitStudentName').value = '';
+                document.getElementById('game-screen').style.display = 'none';
+                document.getElementById('unit-name-screen').style.display = 'flex';
+                return;
+            }
+
+            let gradeText = percent < 50 ? 'مقبول' : percent < 60 ? 'مقبول' : percent < 70 ? 'جيد' : percent < 80 ? 'جيد جداً' : 'ممتاز';
+            let resultText = percent < 50 ? 'راسب' : 'ناجح';
+            let nameToShow = studentFullName || '';
+
+            const examNames = ['الأول', 'الثاني', 'الثالث', 'الرابع', 'الخامس', 'السادس', 'السابع', 'الثامن'];
+            const examLabel = currentExamNumber > 0 ? `الامتحان الشامل ${examNames[currentExamNumber-1]}` : 'الامتحان الشامل';
+
+            let backBtnText = 'رجوع للقائمة السابقة';
+            if (currentMode === 'exam') backBtnText = 'قائمة الامتحانات';
+            else if (currentUnit && currentUnit.toString().includes('ورق عمل')) backBtnText = 'رجوع لورق العمل';
+            else if (['2a','2b','2c'].includes(currentUnit)) backBtnText = '← الوحدة الثانية';
+
+            const resultHTML = `
+                ${nameToShow ? `<div style="font-size:18px; margin-bottom:12px; text-align:right;"><span style="color:#FFD700; font-weight:bold;">الاسم : </span><span style="color:#fff;">${nameToShow}</span></div>` : ''}
+                ${currentMode === 'exam' ? `<div style="font-size:16px; margin-bottom:12px; text-align:right;"><span style="color:#f77f00; font-weight:bold;">الامتحان: </span><span style="color:#fff;">${examLabel}</span></div>` : ''}
+                <div style="font-size:18px; margin-bottom:12px; text-align:right;"><span style="color:#FFD700; font-weight:bold;">النتيجة: </span><span style="color:#fff;">${resultText}</span></div>
+                <div style="font-size:18px; margin-bottom:12px; text-align:right;"><span style="color:#FFD700; font-weight:bold;">التقدير: </span><span style="color:#fff;">${gradeText}</span></div>
+                <div style="font-size:18px; margin-bottom:20px; text-align:right;"><span style="color:#FFD700; font-weight:bold;">نسبة النجاح : </span><span style="color:#fff;">${percent.toFixed(0)}%</span></div>
+                <div style="margin-top:20px; text-align:center;">
+                    <p style="font-size:15px; font-weight:bold; color:#FFD700;">معلمك القدير مبارك عبدالله ارباب</p>
+                    <button onclick="backToExamListFromResult()" style="margin-top:12px; padding:10px 30px; font-size:16px; cursor:pointer; background:linear-gradient(135deg,#FFD700,#FFA500); border:2px solid #000; color:#000; border-radius:8px; font-weight:900;">${backBtnText}</button>
+                </div>`;
+
+            document.getElementById('resultContent').innerHTML = resultHTML;
+            document.getElementById('game-screen').style.display = 'none';
+            document.querySelector('.overlay').style.display = 'flex';
+        }
+
+        function backToExamListFromResult() {
+            document.querySelector('.overlay').style.display = 'none';
+            if (currentMode === 'exam') {
+                document.getElementById('exam-list-screen').style.display = 'flex';
+                renderExamList();
+            } else if (['2a','2b','2c'].includes(currentUnit)) {
+                document.getElementById('sub-units-screen').style.display = 'flex';
+                renderSubUnits2();
+            } else if (currentUnit && (currentUnit.toString().includes('ورق عمل') || currentUnit.toString().includes('امتحانات متنوعة'))) {
+                document.getElementById('worksheets-screen').style.display = 'flex';
+            } else {
+                backToMode();
+            }
+        }
+
+        function unlockAudio() {
+            if (audioUnlocked) return;
+            audioUnlocked = true;
+            document.querySelectorAll('audio').forEach(audio => { audio.play().then(() => { audio.pause(); audio.currentTime = 0; }).catch(e => {}); });
+        }
+
+        function showPlayWithFriend() {
+            document.getElementById('friendModal').style.display = 'block';
+        }
+
+        function closeFriendModal() {
+            document.getElementById('friendModal').style.display = 'none';
+            document.getElementById('gameCode').value = '';
+        }
+
+        function startFriendGame() {
+            const code = document.getElementById('gameCode').value;
+            if (!code || code < 100 || code > 999) { alert('ادخل كود من 3 أرقام مثل 123'); return; }
+            let allQuestions = getAllQuestions();
+            if (allQuestions.length === 0) { alert('ملف الأسئلة فاضي أو ما تحمّل'); return; }
+            gameSeed = parseInt(code);
+            let selectedQuestions = [];
+            let usedIndexes = [];
+            function seededRandom() { gameSeed = (gameSeed * 9301 + 49297) % 233280; return gameSeed / 233280; }
+            while(selectedQuestions.length < 10 && selectedQuestions.length < allQuestions.length) {
+                let index = Math.floor(seededRandom() * allQuestions.length);
+                if (!usedIndexes.includes(index)) { usedIndexes.push(index); selectedQuestions.push(allQuestions[index]); }
+            }
+            questions = selectedQuestions;
+            totalQuestions = questions.length;
+            currentUnit = 'العب مع زميلك - كود: ' + code;
+            closeFriendModal();
+            document.getElementById('mode-screen').style.display = 'none';
+            document.getElementById('game-screen').style.display = 'block';
+            document.getElementById('total-grade').innerText = totalQuestions;
+            startGame();
+        }
+
+        function openWorksheetsScreen() {
+            document.getElementById('mode-screen').style.display = 'none';
+            document.getElementById('worksheets-screen').style.display = 'flex';
+            renderWorksheets();
+        }
+
+        function openSummariesScreen() {
+            document.getElementById('mode-screen').style.display = 'none';
+            document.getElementById('summaries-screen').style.display = 'flex';
+            renderSummaries();
+        }
+
+        function renderWorksheets() {
+            const grid = document.getElementById('worksheets-grid');
+            grid.innerHTML = '';
+            units.forEach(unit => {
+                const card = document.createElement('div');
+                card.className = 'unit-card';
+                card.innerHTML = `<div class="unit-num">ورق عمل</div><div class="unit-name">الوحدة ${unit.num}</div><div class="unit-questions">${unit.name}</div>`;
+                card.onclick = () => loadWorksheet(unit.num);
+                grid.appendChild(card);
+            });
+            const examCard = document.createElement('div');
+            examCard.className = 'unit-card';
+            examCard.style.borderColor = '#f77f00';
+            examCard.innerHTML = `<div class="unit-num">امتحانات</div><div class="unit-name">متنوعة</div><div class="unit-questions">من كل الوحدات</div>`;
+            examCard.onclick = () => loadMixedExam();
+            grid.appendChild(examCard);
+        }
+
+        function renderSummaries() {
+            const grid = document.getElementById('summaries-grid');
+            grid.innerHTML = '';
+            units.forEach(unit => {
+                const card = document.createElement('div');
+                card.className = 'unit-card';
+                card.innerHTML = `<div class="unit-num">ملخص</div><div class="unit-name">الوحدة ${unit.num}</div><div class="unit-questions">${unit.name}</div>`;
+                card.onclick = () => loadSummary(unit.num);
+                grid.appendChild(card);
+            });
+        }
+
+        function loadWorksheet(unitNum) {
+            const script = document.createElement('script');
+            script.src = `worksheet${unitNum}.js`;
+            script.onload = function() {
+                questions = window[`worksheet${unitNum}`];
+                totalQuestions = questions.length;
+                currentUnit = `ورق عمل الوحدة ${unitNum}`;
+                currentMode = 'worksheet';
+                document.getElementById('worksheets-screen').style.display = 'none';
+                document.getElementById('total-grade').innerText = totalQuestions;
+                startGame();
+            };
+            script.onerror = function() { alert(`ملف worksheet${unitNum}.js غير موجود`); };
+            document.head.appendChild(script);
+        }
+
+        function loadSummary(unitNum) {
+            const script = document.createElement('script');
+            script.src = `summary${unitNum}.js`;
+            script.onload = function() {
+                const summaryHTML = window[`summary${unitNum}`];
+                const titleEl = document.getElementById('summary-modal-title');
+                if (titleEl) titleEl.innerText = `ملخص الوحدة ${unitNum} - ${units[unitNum-1].name}`;
+                document.getElementById('summary-modal-content').innerHTML = summaryHTML;
+                document.getElementById('summary-modal').style.display = 'flex';
+            };
+            script.onerror = function() { alert(`ملف summary${unitNum}.js غير موجود`); };
+            document.head.appendChild(script);
+        }
+
+        function closeSummaryModal() { document.getElementById('summary-modal').style.display = 'none'; }
+
+        function loadMixedExam() {
+            const script = document.createElement('script');
+            script.src = `mixed-exams.js`;
+            script.onload = function() {
+                questions = window.mixedExams;
+                totalQuestions = questions.length;
+                currentUnit = 'امتحانات متنوعة';
+                currentMode = 'worksheet';
+                document.getElementById('worksheets-screen').style.display = 'none';
+                document.getElementById('total-grade').innerText = totalQuestions;
+                startGame();
+            };
+            script.onerror = function() { alert('ملف mixed-exams.js غير موجود'); };
+            document.head.appendChild(script);
+        }
+
+        window.onload = function() { renderUnits(); };
+
+</script>
+</body>
+</html>
